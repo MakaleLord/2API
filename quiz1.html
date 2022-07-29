@@ -1,0 +1,96 @@
+<html>
+
+<head>
+  <title>Quiz</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Notable|Roboto&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <h1>Quiz Time</h1>
+  <audio id="correctAudio" src="correct.mp3" preload></audio>
+  <audio id="incorrectAudio" src="incorrect.mp3" preload></audio>
+  <div class="container" id="quiz">
+    <p id="ques"></p>
+    <p id="correct-answer"></p>
+    <p id="score-text">0</p>
+    <button id="skip-btn">Skip</button>
+    <div id="choices"></div>
+  </div>
+
+  <script>
+    var quizApi = "https://opentdb.com/api.php"
+
+    function getQues() {
+      var inputData = {
+        amount: 1 
+      }
+     
+      $.ajax({
+        url: quizApi, 
+        data: inputData
+      }).then(showQues);
+    }
+    
+    var correctAnswer;
+    var count = 0;
+    
+    function showQues(data) {
+      console.log(data);
+      var qObj = data.results[0];
+      $("#ques").html(qObj.question);
+      correctAnswer = qObj.correct_answer;
+      $('#choices').html("");
+      var choices = qObj.incorrect_answers;
+      choices.push(qObj.correct_answer);
+      var sortedChoices = choices.sort();     
+      for(c of sortedChoices) {
+        var choiceHTML = `<p class="option">${c}</p>`;
+        $('#choices').append(choiceHTML)
+      }
+      $('.option').click(check);
+    }
+    
+    function check(event) {
+      var clickedOption = event.currentTarget;
+      var clickedText = $(clickedOption).text();
+       if (clickedText == correctAnswer) {
+        getQues();
+        $('#correctAudio')[0].play();
+         count = count + 1;
+         $("#score-text").text(count);
+      } else {
+        gameOver();
+        $('#incorrectAudio')[0].play();
+      }
+    }
+    
+    function gameOver() {
+      $('#choices').hide();
+      $('#correct-answer').text(correctAnswer);
+      var scoreboard = `You answered ${count} questions correctly.`;
+      $('#score-text').text(scoreboard);
+    }
+    
+    var skipRemaining = 3;
+    
+    function skip() {
+      if(skipRemaining > 0) {
+        skipRemaining=skipRemaining - 1
+        getQues();
+      } else {
+        alert("You are out of skips.");
+        $("#skip-btn");
+      }
+    }
+    
+    $('#skip-btn').click(skip);
+    
+    getQues();
+    
+
+  </script>
+</body>
+
+</html><script type="application/javascript" src="/share.js"></script>
